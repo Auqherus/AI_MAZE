@@ -1,6 +1,6 @@
 """
 Q-learning algorithm. It is the brain behind the agent of reinforcement learning.
-"""
+q"""
 
 import numpy as np
 import pandas as pd
