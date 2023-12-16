@@ -1,16 +1,13 @@
 # df_maze.py
 import random
-
-
-# Create a maze using the depth-first algorithm described at
-# https://scipython.com/blog/making-a-maze/
-# Christian Hill, April 2017.
+import pygame
+import sys
 
 class Cell:
     """A cell in the maze.
 
     A maze "Cell" is a point in the grid which may be surrounded by walls to
-    the north, east, south or west.
+    the north, east, south, or west.
 
     """
 
@@ -18,7 +15,7 @@ class Cell:
     wall_pairs = {'N': 'S', 'S': 'N', 'E': 'W', 'W': 'E'}
 
     def __init__(self, x, y):
-        """Initialize the cell at (x,y). At first it is surrounded by walls."""
+        """Initialize the cell at (x,y). At first, it is surrounded by walls."""
 
         self.x, self.y = x, y
         self.walls = {'N': True, 'S': True, 'E': True, 'W': True}
@@ -53,77 +50,6 @@ class Maze:
         """Return the Cell object at (x,y)."""
 
         return self.maze_map[x][y]
-
-    def __str__(self):
-        """Return a (crude) string representation of the maze."""
-
-        maze_rows = ['-' * self.nx * 2]
-        for y in range(self.ny):
-            maze_row = ['|']
-            for x in range(self.nx):
-                if self.maze_map[x][y].walls['E']:
-                    maze_row.append(' |')
-                else:
-                    maze_row.append('  ')
-            maze_rows.append(''.join(maze_row))
-            maze_row = ['|']
-            for x in range(self.nx):
-                if self.maze_map[x][y].walls['S']:
-                    maze_row.append('-+')
-                else:
-                    maze_row.append(' +')
-            maze_rows.append(''.join(maze_row))
-        return '\n'.join(maze_rows)
-
-    def write_svg(self, filename):
-        """Write an SVG image of the maze to filename."""
-
-        aspect_ratio = self.nx / self.ny
-        # Pad the maze all around by this amount.
-        padding = 10
-        # Height and width of the maze image (excluding padding), in pixels
-        height = 500
-        width = int(height * aspect_ratio)
-        # Scaling factors mapping maze coordinates to image coordinates
-        scy, scx = height / self.ny, width / self.nx
-
-        def write_wall(ww_f, ww_x1, ww_y1, ww_x2, ww_y2):
-            """Write a single wall to the SVG image file handle f."""
-
-            print('<line x1="{}" y1="{}" x2="{}" y2="{}"/>'
-                  .format(ww_x1, ww_y1, ww_x2, ww_y2), file=ww_f)
-
-        # Write the SVG image file for maze
-        with open(filename, 'w') as f:
-            # SVG preamble and styles.
-            print('<?xml version="1.0" encoding="utf-8"?>', file=f)
-            print('<svg xmlns="http://www.w3.org/2000/svg"', file=f)
-            print('    xmlns:xlink="http://www.w3.org/1999/xlink"', file=f)
-            print('    width="{:d}" height="{:d}" viewBox="{} {} {} {}">'
-                  .format(width + 2 * padding, height + 2 * padding,
-                          -padding, -padding, width + 2 * padding, height + 2 * padding),
-                  file=f)
-            print('<defs>\n<style type="text/css"><![CDATA[', file=f)
-            print('line {', file=f)
-            print('    stroke: #000000;\n    stroke-linecap: square;', file=f)
-            print('    stroke-width: 5;\n}', file=f)
-            print(']]></style>\n</defs>', file=f)
-            # Draw the "South" and "East" walls of each cell, if present (these
-            # are the "North" and "West" walls of a neighbouring cell in
-            # general, of course).
-            for x in range(self.nx):
-                for y in range(self.ny):
-                    if self.cell_at(x, y).walls['S']:
-                        x1, y1, x2, y2 = x * scx, (y + 1) * scy, (x + 1) * scx, (y + 1) * scy
-                        write_wall(f, x1, y1, x2, y2)
-                    if self.cell_at(x, y).walls['E']:
-                        x1, y1, x2, y2 = (x + 1) * scx, y * scy, (x + 1) * scx, (y + 1) * scy
-                        write_wall(f, x1, y1, x2, y2)
-            # Draw the North and West maze border, which won't have been drawn
-            # by the procedure above.
-            print('<line x1="0" y1="0" x2="{}" y2="0"/>'.format(width), file=f)
-            print('<line x1="0" y1="0" x2="0" y2="{}"/>'.format(height), file=f)
-            print('</svg>', file=f)
 
     def find_valid_neighbours(self, cell):
         """Return a list of unvisited neighbours to cell."""
@@ -163,3 +89,21 @@ class Maze:
             cell_stack.append(current_cell)
             current_cell = next_cell
             nv += 1
+
+    def draw_maze(self, screen, cell_size):
+        for x in range(self.nx):
+            for y in range(self.ny):
+                cell = self.cell_at(x, y)
+                x_pos, y_pos = x * cell_size, y * cell_size
+
+                # Draw walls
+                if cell.walls['N']:
+                    pygame.draw.line(screen, (0, 0, 0), (x_pos, y_pos), (x_pos + cell_size, y_pos), 2)
+                if cell.walls['S']:
+                    pygame.draw.line(screen, (0, 0, 0), (x_pos, y_pos + cell_size),
+                                     (x_pos + cell_size, y_pos + cell_size), 2)
+                if cell.walls['E']:
+                    pygame.draw.line(screen, (0, 0, 0), (x_pos + cell_size, y_pos),
+                                     (x_pos + cell_size, y_pos + cell_size), 2)
+                if cell.walls['W']:
+                    pygame.draw.line(screen, (0, 0, 0), (x_pos, y_pos), (x_pos, y_pos + cell_size), 2)
