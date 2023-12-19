@@ -7,7 +7,7 @@ from maze_gen import Maze
 from agent_qlearning import QLearningTable
 
 # Maze dimensions (ncols, nrows)
-nx, ny = 5, 5
+nx, ny = 10, 10
 # Maze entry position
 ix, iy = 0, 0
 
@@ -17,6 +17,7 @@ maze.make_maze()
 # Q-learning agent initialization
 actions = ['N', 'S', 'E', 'W']  # Possible actions: move North, South, East, or West
 q_agent = QLearningTable(actions)
+
 
 # Pygame initialization
 pygame.init()
@@ -39,7 +40,7 @@ def show_progress(current, total):
 
 # Main loop
 best_path = None
-total_episodes = 50  # Set the total number of episodes
+total_episodes = 500  # Set the total number of episodes
 
 for episode in range(total_episodes):
     show_progress(episode, total_episodes)
@@ -54,15 +55,29 @@ for episode in range(total_episodes):
 
     # Track the start time of the episode
     start_time = time.time()
+    reached_target = False
+    prev_x, prev_y = agent_x, agent_y  # Initialize prev_x and prev_y before the loop
 
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
-        # Agent's action
-        action = q_agent.choose_action((agent_x, agent_y))
-        prev_x, prev_y = agent_x, agent_y  # Store previous agent position
+        if not reached_target:
+            # Agent's action
+            action = q_agent.choose_action((agent_x, agent_y))
+        else:
+            # Move towards the target
+            if agent_x < target_x:
+                action = 'E'
+            elif agent_x > target_x:
+                action = 'W'
+            elif agent_y < target_y:
+                action = 'S'
+            elif agent_y > target_y:
+                action = 'N'
+            else:
+                action = None  # No action needed, as the agent has reached the target
 
         # Determine the next state based on the action (considering walls)
         if action == 'N' and not maze.cell_at(agent_x, agent_y).walls['N']:
@@ -82,6 +97,7 @@ for episode in range(total_episodes):
         # Assign rewards based on the state transition
         if next_state == 'terminal':
             reward = 1  # Reward for reaching the target
+            reached_target = True  # Set the flag to True when the agent reaches the target
         elif (prev_x, prev_y) == (agent_x, agent_y):
             reward = -1  # Penalty for hitting a wall
         else:
@@ -113,15 +129,15 @@ for episode in range(total_episodes):
         pygame.display.flip()
 
         # Check if the episode should terminate
-        if (agent_x, agent_y) == (target_x, target_y):
+        if reached_target:
             end_time = time.time()  # Track the end time of the episode
             time_taken = end_time - start_time
-            print(f"Episode {episode + 1} - Steps: {steps}, Total Reward: {total_reward}, Time: {time_taken:.2f} seconds")
+            print(
+                f"Episode {episode + 1} - Steps: {steps}, Total Reward: {total_reward}, Time: {time_taken:.2f} seconds")
             print(f"Agent reached the yellow square in {steps} steps. Episode ended.")
             running = False
-
         # Introduce a delay of 250 milliseconds between each step
-        pygame.time.delay(50)
+        pygame.time.delay(1)
 
     # Check if this episode has the best path
     if best_path is None or len(path_taken) < len(best_path):
