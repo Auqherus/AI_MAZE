@@ -7,7 +7,7 @@ from maze_gen import Maze
 from agent_qlearning import QLearningTable
 
 # Maze dimensions (ncols, nrows)
-nx, ny = 10, 10
+nx, ny = 7, 7
 # Maze entry position
 ix, iy = 0, 0
 
@@ -38,9 +38,39 @@ def show_progress(current, total):
     progress = (current + 1) / total * 100
     print(f"Episode {current + 1}/{total} - Progress: {progress:.2f}%")
 
+def bresenham_line(x0, y0, x1, y1):
+    points = []
+    dx = abs(x1 - x0)
+    dy = abs(y1 - y0)
+    x, y = x0, y0
+    sx = -1 if x0 > x1 else 1
+    sy = -1 if y0 > y1 else 1
+
+    if dx > dy:
+        err = dx / 2.0
+        while x != x1:
+            points.append((x, y))
+            err -= dy
+            if err < 0:
+                y += sy
+                err += dx
+            x += sx
+    else:
+        err = dy / 2.0
+        while y != y1:
+            points.append((x, y))
+            err -= dx
+            if err < 0:
+                x += sx
+                err += dy
+            y += sy
+
+    points.append((x, y))
+    return points
+
 # Main loop
 best_path = None
-total_episodes = 500  # Set the total number of episodes
+total_episodes = 100  # Set the total number of episodes
 
 for episode in range(total_episodes):
     show_progress(episode, total_episodes)
@@ -136,8 +166,12 @@ for episode in range(total_episodes):
                 f"Episode {episode + 1} - Steps: {steps}, Total Reward: {total_reward}, Time: {time_taken:.2f} seconds")
             print(f"Agent reached the yellow square in {steps} steps. Episode ended.")
             running = False
+
         # Introduce a delay of 250 milliseconds between each step
         pygame.time.delay(1)
+
+        # Update prev_x and prev_y for the next iteration
+        prev_x, prev_y = agent_x, agent_y
 
     # Check if this episode has the best path
     if best_path is None or len(path_taken) < len(best_path):
@@ -158,13 +192,17 @@ for i in range(len(best_path) - 1):
     x, y = best_path[i]
     next_x, next_y = best_path[i + 1]
 
-    # Draw a line connecting consecutive points in the best path
-    pygame.draw.line(screen, GREEN, (x * cell_size + cell_size // 2, y * cell_size + cell_size // 2),
-                     (next_x * cell_size + cell_size // 2, next_y * cell_size + cell_size // 2), 5)
+    # Use Bresenham's line algorithm to get points along the line
+    points = bresenham_line(x * cell_size + cell_size // 2, y * cell_size + cell_size // 2,
+                            next_x * cell_size + cell_size // 2, next_y * cell_size + cell_size // 2)
 
-# Draw the last point in the best path
-x, y = best_path[-1]
-pygame.draw.circle(screen, GREEN, (x * cell_size + cell_size // 2, y * cell_size + cell_size // 2), 5)
+    # Draw the line only if there are 2 or more points
+    if len(points) >= 2:
+        pygame.draw.lines(screen, GREEN, False, points, 5)
+
+        # Draw the last point in the best path
+        x, y = best_path[-1]
+        pygame.draw.circle(screen, GREEN, (x * cell_size + cell_size // 2, y * cell_size + cell_size // 2), 5)
 
 # Update the display
 pygame.display.flip()
