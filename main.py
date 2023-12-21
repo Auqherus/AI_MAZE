@@ -1,5 +1,6 @@
 # main.py
 
+import matplotlib.pyplot as plt
 import pygame
 import sys
 import time
@@ -7,7 +8,7 @@ from maze_gen import Maze
 from agent_qlearning import QLearningTable
 
 # Maze dimensions (ncols, nrows)
-nx, ny = 7, 7
+nx, ny = 20, 20
 # Maze entry position
 ix, iy = 0, 0
 
@@ -68,9 +69,12 @@ def bresenham_line(x0, y0, x1, y1):
     points.append((x, y))
     return points
 
+# Create a list to store the number of steps in each episode
+steps_history = []
+
 # Main loop
 best_path = None
-total_episodes = 100  # Set the total number of episodes
+total_episodes = 10000  # Set the total number of episodes
 
 for episode in range(total_episodes):
     show_progress(episode, total_episodes)
@@ -173,6 +177,9 @@ for episode in range(total_episodes):
         # Update prev_x and prev_y for the next iteration
         prev_x, prev_y = agent_x, agent_y
 
+    # Store the number of steps in the episode to the history
+    steps_history.append(steps)
+
     # Check if this episode has the best path
     if best_path is None or len(path_taken) < len(best_path):
         best_path = path_taken
@@ -204,8 +211,24 @@ for i in range(len(best_path) - 1):
         x, y = best_path[-1]
         pygame.draw.circle(screen, GREEN, (x * cell_size + cell_size // 2, y * cell_size + cell_size // 2), 5)
 
+
 # Update the display
 pygame.display.flip()
+
+# Plotting the steps history with a line
+plt.plot(steps_history, '-')  # Adjust markersize as needed
+plt.title('Number of Steps in Each Episode')
+plt.xlabel('Episode')
+plt.ylabel('Number of Steps')
+
+# Find the maximum step point in each episode
+max_steps_in_episode = [max(steps_history[i:i + total_episodes]) for i in range(0, len(steps_history), total_episodes)]
+
+# Draw lines connecting the maximum step points in each episode
+for i in range(1, len(max_steps_in_episode)):
+    plt.plot([i * total_episodes, (i + 1) * total_episodes], [max_steps_in_episode[i - 1]] * 2, 'k-')
+
+plt.show()
 
 # Keep the window open until the user closes it
 while True:
