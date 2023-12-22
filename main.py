@@ -8,7 +8,7 @@ from maze_gen import Maze
 from agent_qlearning import QLearningTable
 
 # Maze dimensions (ncols, nrows)
-nx, ny = 20, 20
+nx, ny = 30, 30
 # Maze entry position
 ix, iy = 0, 0
 
@@ -17,14 +17,15 @@ maze.make_maze()
 
 # Q-learning agent initialization
 actions = ['N', 'S', 'E', 'W']  # Possible actions: move North, South, East, or West
-q_agent = QLearningTable(actions)
+initial_epsilon = 0.7  # Adjust this value to control initial exploration
+q_agent = QLearningTable(actions, e_greedy=initial_epsilon)
 
 
 # Pygame initialization
 pygame.init()
 
 # Set up the display
-cell_size = 40
+cell_size = 25
 width, height = nx * cell_size, ny * cell_size
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Losowa Reprezentacja Labiryntu")
@@ -76,16 +77,20 @@ steps_history = []
 best_path = None
 total_episodes = 10000  # Set the total number of episodes
 
+
+
 for episode in range(total_episodes):
     show_progress(episode, total_episodes)
+
+    total_reward = 0  # Accumulator for total reward in the episode
+    steps = 0  # Counter for the number of steps
 
     running = True
     agent_x, agent_y = ix, iy
     start_x, start_y = ix, iy
     target_x, target_y = nx - 1, ny - 1  # Assuming the target is at the bottom-right corner
     path_taken = []  # Store the path taken during this episode
-    steps = 0  # Counter for the number of steps
-    total_reward = 0  # Accumulator for total reward in the episode
+
 
     # Track the start time of the episode
     start_time = time.time()
@@ -130,12 +135,12 @@ for episode in range(total_episodes):
 
         # Assign rewards based on the state transition
         if next_state == 'terminal':
-            reward = 1  # Reward for reaching the target
+            reward = 10  # Reward for reaching the target
             reached_target = True  # Set the flag to True when the agent reaches the target
         elif (prev_x, prev_y) == (agent_x, agent_y):
-            reward = -1  # Penalty for hitting a wall
+            reward = -0.7  # Penalty for hitting a wall
         else:
-            reward = -0.1  # Small penalty for each step
+            reward = -0.2  # Small penalty for each step
 
         q_agent.learn((prev_x, prev_y), action, reward, next_state)
 
