@@ -36,7 +36,7 @@ GREEN = (0, 255, 0)
 RED = (255, 0, 0)
 
 def show_progress(current, total):
-    """Show the progress of the current episode out of the total episodes."""
+    # Show the progress of the current episode out of the total episodes
     progress = (current + 1) / total * 100
     print(f"Episode {current + 1}/{total} - Progress: {progress:.2f}%")
 
@@ -75,7 +75,7 @@ steps_history = []
 
 # Main loop
 best_path = None
-total_episodes = 10000  # Set the total number of episodes
+total_episodes = 2000  # Set the total number of episodes
 
 
 
@@ -161,8 +161,14 @@ for episode in range(total_episodes):
         # Draw the target point
         pygame.draw.rect(screen, (255, 255, 0), (target_x * cell_size, target_y * cell_size, cell_size, cell_size))
 
-        # Draw the agent
-        pygame.draw.rect(screen, RED, (agent_x * cell_size, agent_y * cell_size, cell_size, cell_size))
+        # Calculate the center of the circle
+        circle_center = (int(agent_x * cell_size + cell_size / 2), int(agent_y * cell_size + cell_size / 2))
+
+        # Calculate the radius of the circle (half of the cell size)
+        circle_radius = int(cell_size / 2)
+
+        # Draw the circle
+        pygame.draw.circle(screen, RED, circle_center, circle_radius)
 
         # Update the display
         pygame.display.flip()
