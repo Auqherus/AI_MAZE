@@ -2,8 +2,8 @@
 
 import matplotlib.pyplot as plt
 import pygame
-import time
 import sys
+import time
 from maze_gen import Maze
 from agent_qlearning import QLearningTable
 
