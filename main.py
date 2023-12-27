@@ -2,13 +2,13 @@
 
 import matplotlib.pyplot as plt
 import pygame
-import sys
 import time
+import sys
 from maze_gen import Maze
 from agent_qlearning import QLearningTable
 
 # Maze dimensions (ncols, nrows)
-nx, ny = 30, 30
+nx, ny = 8, 8
 # Maze entry position
 ix, iy = 0, 0
 
@@ -25,7 +25,7 @@ q_agent = QLearningTable(actions, e_greedy=initial_epsilon)
 pygame.init()
 
 # Set up the display
-cell_size = 25
+cell_size = 35
 width, height = nx * cell_size, ny * cell_size
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Losowa Reprezentacja Labiryntu")
@@ -75,7 +75,7 @@ steps_history = []
 
 # Main loop
 best_path = None
-total_episodes = 2000  # Set the total number of episodes
+total_episodes = 500  # Set the total number of episodes
 
 
 
