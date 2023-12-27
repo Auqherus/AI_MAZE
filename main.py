@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 import pygame
 import sys
 import time
-from maze_gen import Maze
 from agent_qlearning import QLearningTable
+from maze_gen import Maze
+
 
 # Maze dimensions (ncols, nrows)
 nx, ny = 8, 8
